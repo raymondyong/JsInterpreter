@@ -23,7 +23,6 @@ var options = {
 var req = https.get(options,
             function(response)
             {
-                console.log("received token:");
                 var tokenData = "";
                 response.setEncoding('utf8');
                 response.addListener(
@@ -36,7 +35,7 @@ var req = https.get(options,
                             "end", 
                             function() {
                                 console.log("Received ApiToken json:"  + tokenData );
-                                red.configurations.resource_mappings.hosts.rdc_api.token = tokenData.api_token;
+                                red.configurations.resource_mappings.hosts.rdc_api.token = JSON.parse(tokenData).api_token;
                                 server.start(router.route, handle);
                     });
             });

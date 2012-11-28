@@ -2,8 +2,7 @@
 // var exec = require("child_process").exec;
 var red = require('./red');
 var vm = require('vm');
-var util = require('util');
-var http = require('http');
+var https = require('https');
 
 function index(response, postData){
     console.log("    - Request handler 'index' was called.");
@@ -15,7 +14,7 @@ function index(response, postData){
         '</head>'+
         '<body>'+
         '<form action="/aggregate" method="post">'+
-        '<textarea name="text" rows="20" cols="60"></textarea>'+
+        '<textarea name="text" rows="20" cols="100"></textarea>'+
         '<input type="submit" value="Submit text" />'+
         '</form>'+
         '</body>'+
@@ -26,7 +25,7 @@ function index(response, postData){
     response.end();
 }
 
-function aggregate(aggr_res, javascript){
+function aggregate(response, javascript){
     console.log("    - Request handler 'aggregate' was called.");
     
     var sandbox = {
@@ -35,10 +34,13 @@ function aggregate(aggr_res, javascript){
                     var host = red.configurations.resource_mappings.hosts[handler.host];
                     var options = {
                             hostname: host.address,
-                            port: 80,
-                            path: handler.path + query,
+                            port: 443,
+                            path: handler.path + "?" + query + '&api_token=' + host.token,
+                            rejectUnauthorized: false,
+                            requestCert: true,
+                            agent: false                            
                     };
-                    http.get(options,
+                    https.get(options,
                             function(api_res)
                             {
                                 var data = "";
@@ -52,16 +54,16 @@ function aggregate(aggr_res, javascript){
                                 api_res.addListener(
                                             "end", 
                                             function() {
-                                                callback(data, aggr_res);
+                                                callback(data, response);
                                     });
                             });
                 }
         };
     
     vm.runInNewContext(javascript, sandbox, 'blah.vm');
-    response.writeHead(200, {"Content-Type": "text/plain"});
-    //response.write(util.inspect(sandbox));
-    //response.end();
+//    response.writeHead(200, {"Content-Type": "text/plain"});
+//    response.write(util.inspect(sandbox));
+//    response.end();
 }
 
 exports.index = index;

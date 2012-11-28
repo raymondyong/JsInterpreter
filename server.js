@@ -13,14 +13,15 @@ function start(route, handle){
                     "data", 
                     function(postDataChunk){
                         postData += postDataChunk.toString('utf8');
-                        console.log("Received POST data chunk '" + postDataChunk + "'.");
                     });
         
         request.addListener(
                     "end", 
                     function() {
                         // passing response to handlers.  "you take care of responding!"
-                        route(handle, pathname, response, wwwforms.decodeForm(postData).text);
+                        var decodedPostData = wwwforms.decodeForm(postData).text;
+                        console.log("Received POST data:\n   '" + decodedPostData + "'.");
+                        route(handle, pathname, response, decodedPostData);
         });
     }
     
